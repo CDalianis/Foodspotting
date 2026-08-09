@@ -2,6 +2,7 @@ package gr.projectfoodspots.repository;
 
 import gr.projectfoodspots.model.FavoritePlace;
 import gr.projectfoodspots.model.User;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,8 @@ public interface FavoritePlaceRepository extends JpaRepository<FavoritePlace, Lo
     Optional<FavoritePlace> findByUuidAndUser(UUID uuid, User user);
 
     Page<FavoritePlace> findAllByUserAndDeletedFalse(User user, Pageable pageable);
+
+    List<FavoritePlace> findAllByUserAndDeletedFalseOrderByCreatedAtDesc(User user);
 
     boolean existsByUuidAndUser_Uuid(UUID uuid, UUID userUuid);
 }
