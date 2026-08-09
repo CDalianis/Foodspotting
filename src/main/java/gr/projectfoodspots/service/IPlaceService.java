@@ -4,6 +4,7 @@ import gr.projectfoodspots.dto.PlaceCreateDTO;
 import gr.projectfoodspots.dto.PlaceReadDTO;
 import gr.projectfoodspots.dto.PlaceUpdateDTO;
 import gr.projectfoodspots.place.filters.PlaceFilters;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 
@@ -15,7 +16,11 @@ public interface IPlaceService {
 
     Page<PlaceReadDTO> getOwnFiltered(String username, PlaceFilters filters);
 
+    List<PlaceReadDTO> getAllOwn(String username);
+
     PlaceReadDTO updateOwn(String username, UUID placeUuid, PlaceUpdateDTO request);
 
     void deleteOwn(String username, UUID placeUuid);
+
+    int deleteAllOwn(String username);
 }
