@@ -12,6 +12,7 @@ import gr.projectfoodspots.place.filters.PlaceSpecifications;
 import gr.projectfoodspots.repository.FavoritePlaceRepository;
 import gr.projectfoodspots.repository.UserRepository;
 import gr.projectfoodspots.service.IPlaceService;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,17 @@ public class PlaceServiceImpl implements IPlaceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<PlaceReadDTO> getAllOwn(String username) {
+        log.debug("Fetching all places for CSV export username={}", username);
+        User owner = getUserByUsername(username);
+        return favoritePlaceRepository.findAllByUserAndDeletedFalseOrderByCreatedAtDesc(owner)
+                .stream()
+                .map(placeMapper::toReadDTO)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public PlaceReadDTO updateOwn(String username, UUID placeUuid, PlaceUpdateDTO request) {
         log.debug("Updating place uuid={} for username={}", placeUuid, username);
@@ -96,6 +108,22 @@ public class PlaceServiceImpl implements IPlaceService {
         place.setDeletedAt(java.time.LocalDateTime.now());
         favoritePlaceRepository.save(place);
         log.info("Place soft deleted uuid={} by username={}", placeUuid, username);
+    }
+
+    @Override
+    @Transactional
+    public int deleteAllOwn(String username) {
+        log.debug("Soft deleting all places for username={}", username);
+        User owner = getUserByUsername(username);
+        List<FavoritePlace> places = favoritePlaceRepository.findAllByUserAndDeletedFalseOrderByCreatedAtDesc(owner);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        for (FavoritePlace place : places) {
+            place.setDeleted(true);
+            place.setDeletedAt(now);
+        }
+        favoritePlaceRepository.saveAll(places);
+        log.info("Soft deleted {} places for username={}", places.size(), username);
+        return places.size();
     }
 
     private User getUserByUsername(String username) {
