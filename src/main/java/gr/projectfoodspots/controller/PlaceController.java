@@ -1,6 +1,8 @@
 package gr.projectfoodspots.controller;
 
+import gr.projectfoodspots.dto.PlaceBulkDeleteResultDTO;
 import gr.projectfoodspots.dto.PlaceCreateDTO;
+import gr.projectfoodspots.dto.PlaceCsvImportResultDTO;
 import gr.projectfoodspots.dto.PlaceReadDTO;
 import gr.projectfoodspots.dto.PlaceTagDTO;
 import gr.projectfoodspots.dto.PlaceUpdateDTO;
@@ -8,6 +10,7 @@ import gr.projectfoodspots.model.PlaceTag;
 import gr.projectfoodspots.model.User;
 import gr.projectfoodspots.place.filters.PlaceFilters;
 import gr.projectfoodspots.service.IPlaceService;
+import gr.projectfoodspots.service.PlaceCsvService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,7 +23,9 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,7 +36,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/places")
@@ -42,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaceController {
 
     private final IPlaceService placeService;
+    private final PlaceCsvService placeCsvService;
 
     @PostMapping
     @Operation(summary = "Create a favorite place")
@@ -69,6 +77,37 @@ public class PlaceController {
                 .map(tag -> new PlaceTagDTO(tag.name(), tag.getLabel()))
                 .toList();
         return ResponseEntity.ok(tags);
+    }
+
+    @GetMapping("/export")
+    @Operation(summary = "Export current user's places as CSV")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "CSV file returned")
+    })
+    public ResponseEntity<byte[]> exportCsv(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        log.info("Export places CSV request by username={}", user.getUsername());
+        byte[] csv = placeCsvService.exportOwnPlaces(user.getUsername());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"foodspots-places.csv\"")
+                .contentType(new MediaType("text", "csv"))
+                .body(csv);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Import places from CSV for the current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Import finished"),
+            @ApiResponse(responseCode = "400", description = "Invalid CSV file")
+    })
+    public ResponseEntity<PlaceCsvImportResultDTO> importCsv(
+            Authentication authentication,
+            @RequestPart("file") MultipartFile file
+    ) {
+        User user = (User) authentication.getPrincipal();
+        log.info("Import places CSV request by username={} filename={}",
+                user.getUsername(), file.getOriginalFilename());
+        return ResponseEntity.ok(placeCsvService.importOwnPlaces(user.getUsername(), file));
     }
 
     @GetMapping("/{uuid}")
@@ -115,6 +154,18 @@ public class PlaceController {
         User user = (User) authentication.getPrincipal();
         log.info("Update place request by username={} uuid={}", user.getUsername(), uuid);
         return ResponseEntity.ok(placeService.updateOwn(user.getUsername(), uuid, request));
+    }
+
+    @DeleteMapping
+    @Operation(summary = "Soft delete all favorite places for the current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Places deleted")
+    })
+    public ResponseEntity<PlaceBulkDeleteResultDTO> deleteAll(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        log.info("Delete all places request by username={}", user.getUsername());
+        int deletedCount = placeService.deleteAllOwn(user.getUsername());
+        return ResponseEntity.ok(new PlaceBulkDeleteResultDTO(deletedCount));
     }
 
     @DeleteMapping("/{uuid}")
