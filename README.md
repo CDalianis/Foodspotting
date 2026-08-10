@@ -205,6 +205,8 @@ VITE_API_URL=http://localhost:8080/api/v1
 
 The places map uses **MapLibre GL** with free OpenFreeMap tiles — no API key required.
 
+UI language can be switched between **English** and **Greek** (EN/EL) from the navbar; the choice is saved in `localStorage`.
+
 Implemented pages:
 
 - `/register` user registration
@@ -237,6 +239,12 @@ Map behavior in `/places`:
 - `GET /api/v1/places/{uuid}`
 - `PUT /api/v1/places/{uuid}`
 - `DELETE /api/v1/places/{uuid}` (soft delete)
+- `DELETE /api/v1/places` — soft delete all places for the current user
+- `GET /api/v1/places/export` — download current user's places as CSV
+- `POST /api/v1/places/import` — upload CSV (`multipart/form-data`, field `file`) for the current user
+
+CSV columns: `name,notes,latitude,longitude,address,streetNumber,postalCode,city,country,googlePlaceId,rating,isPublic,tags`  
+(`tags` use `|` / `;` / `,` separators, e.g. `PIZZA|CAFE`)
 
 ## Logging
 
