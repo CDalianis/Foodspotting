@@ -21,6 +21,13 @@ export function getTagMeta(tagId) {
   return PLACE_TAG_BY_ID[tagId] || PLACE_TAG_BY_ID.OTHER
 }
 
-export function formatTagLabels(tags = []) {
-  return tags.map((id) => getTagMeta(id).label).join(', ')
+export function getTagLabel(tagId, t) {
+  if (typeof t === 'function') {
+    return t(`tags.${tagId}`)
+  }
+  return getTagMeta(tagId).label
+}
+
+export function formatTagLabels(tags = [], t) {
+  return tags.map((id) => getTagLabel(id, t)).join(', ')
 }
