@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { http } from '../api/http'
+import { useI18n } from '../i18n/I18nProvider'
 import { setAuthToken } from '../services/auth'
 
 export function LoginPage() {
@@ -9,6 +10,7 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const onSubmit = async (event) => {
     event.preventDefault()
@@ -19,7 +21,7 @@ export function LoginPage() {
       setAuthToken(data.token)
       navigate('/places')
     } catch (err) {
-      setError(err?.response?.data?.description || err?.response?.data?.message || 'Login failed')
+      setError(err?.response?.data?.description || err?.response?.data?.message || t('login.failed'))
     } finally {
       setLoading(false)
     }
@@ -27,14 +29,14 @@ export function LoginPage() {
 
   return (
     <section className="auth-card">
-      <h2>Login</h2>
+      <h2>{t('login.title')}</h2>
       <form onSubmit={onSubmit} className="form-grid">
         <label>
-          Username
+          {t('login.username')}
           <input value={username} onChange={(e) => setUsername(e.target.value)} required />
         </label>
         <label>
-          Password
+          {t('login.password')}
           <input
             type="password"
             value={password}
@@ -43,7 +45,7 @@ export function LoginPage() {
           />
         </label>
         <button className="full-width" disabled={loading} type="submit">
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? t('login.submitting') : t('login.submit')}
         </button>
         {error && <p className="error">{error}</p>}
       </form>
