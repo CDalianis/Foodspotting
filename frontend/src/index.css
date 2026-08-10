@@ -135,6 +135,26 @@
     color: var(--nav-active-text);
   }
 
+  .language-toggle {
+    @apply inline-flex overflow-hidden rounded-md border;
+    border-color: var(--border-strong);
+  }
+
+  .language-btn {
+    @apply rounded-none border-0 px-2.5 py-1.5 text-xs font-bold;
+    background: var(--bg-input);
+    color: var(--text-muted);
+  }
+
+  .language-btn.active {
+    background: var(--nav-active-bg);
+    color: var(--nav-active-text);
+  }
+
+  .language-btn:hover:not(.active) {
+    color: var(--accent-strong);
+  }
+
   .theme-toggle,
   .nav-logout {
     @apply rounded-md border px-3 py-1.5 text-sm font-medium transition;
@@ -183,6 +203,26 @@
   .card h2 {
     @apply text-xl sm:text-2xl;
     color: var(--accent-strong);
+  }
+
+  .places-header {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .places-header h2 {
+    @apply m-0;
+  }
+
+  .csv-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .csv-file-input {
+    @apply sr-only;
+  }
+
+  .csv-status {
+    @apply mb-3;
   }
 
   .form-grid {
@@ -261,7 +301,7 @@
 
   .places-layout {
     @apply grid items-start gap-4 lg:gap-5;
-    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.9fr) minmax(280px, 0.85fr);
   }
 
   .left-panel,
@@ -269,15 +309,270 @@
     @apply min-w-0;
   }
 
-  .right-panel {
+  .places-list-panel {
+    @apply flex flex-col rounded-xl border p-3;
+    border-color: var(--border-strong);
+    background: var(--bg-surface-soft);
     max-height: clamp(360px, 58vh, 760px);
-    @apply overflow-auto pr-1;
+    overflow: hidden;
+  }
+
+  .places-list-header {
+    @apply mb-1 flex items-center justify-between gap-2;
+  }
+
+  .places-list-header h3 {
+    @apply m-0 text-base font-semibold;
+    color: var(--accent-strong);
+  }
+
+  .places-list-count {
+    @apply rounded-full px-2 py-0.5 text-xs font-semibold;
+    background: var(--bg-card-soft);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .places-list-hint {
+    @apply mb-2 text-xs;
+    color: var(--text-muted);
+  }
+
+  .places-list-panel .list {
+    @apply mt-0 flex-1 overflow-auto pr-1;
+  }
+
+  .right-panel {
+    max-height: none;
   }
 
   .map-wrapper {
-    @apply overflow-hidden rounded-xl border;
+    @apply relative overflow-hidden rounded-xl border;
     border-color: var(--border-strong);
     height: clamp(360px, 58vh, 760px);
+  }
+
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    border: 0;
+    border-radius: 0;
+    background: rgba(2, 6, 23, 0.45);
+    cursor: pointer;
+  }
+
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    height: 100vh;
+    width: min(420px, 94vw);
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+    border-left: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    box-shadow: -12px 0 40px var(--shadow);
+  }
+
+  .side-drawer.open {
+    transform: translateX(0);
+  }
+
+  .side-drawer-header {
+    @apply flex items-center justify-between gap-3 border-b px-4 py-3;
+    border-color: var(--border);
+  }
+
+  .side-drawer-header h3 {
+    @apply m-0 text-lg font-semibold;
+    color: var(--accent-strong);
+  }
+
+  .side-drawer-body {
+    @apply flex-1 overflow-auto px-4 py-4;
+  }
+
+  .side-drawer-footer {
+    @apply flex gap-2 border-t px-4 py-3;
+    border-color: var(--border);
+  }
+
+  .side-drawer-footer button {
+    @apply flex-1;
+  }
+
+  .place-card-button {
+    @apply w-full cursor-pointer text-left;
+    background: var(--bg-card-soft);
+    color: inherit;
+    font: inherit;
+  }
+
+  .place-card-button:hover {
+    border-color: var(--accent-strong);
+    background: color-mix(in srgb, var(--accent-strong) 10%, var(--bg-card-soft));
+  }
+
+  .place-card-button.selected {
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 1px var(--accent-strong);
+  }
+
+  .place-card-compact {
+    @apply p-2;
+  }
+
+  .place-card-main {
+    @apply w-full rounded-md border-0 bg-transparent p-0 text-left;
+    color: inherit;
+    font: inherit;
+  }
+
+  .place-card-main:hover {
+    background: transparent;
+  }
+
+  .place-card-compact .place-card-title-row h3 {
+    @apply text-sm font-semibold leading-tight;
+  }
+
+  .place-card-compact .distance-badge {
+    @apply px-1.5 py-0 text-[0.65rem];
+  }
+
+  .place-tag-badges-compact {
+    @apply mb-0 mt-1 gap-1;
+  }
+
+  .tag-badge-compact {
+    @apply px-1.5 py-0 text-[0.7rem];
+  }
+
+  .place-card-actions {
+    @apply mt-1.5 flex gap-1.5;
+  }
+
+  .place-card-actions button {
+    @apply flex-1 px-2 py-1 text-xs;
+  }
+
+  .place-card-compact.selected {
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 1px var(--accent-strong);
+  }
+
+  .place-card-address {
+    @apply m-0 text-sm;
+    color: var(--text-muted);
+  }
+
+  .places-list-compact {
+    @apply gap-2;
+  }
+
+  .map-address-search {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 2;
+    width: min(100% - 1.5rem, 26rem);
+  }
+
+  .map-address-search-form {
+    @apply flex gap-2;
+  }
+
+  .map-address-search-form input {
+    @apply min-w-0 flex-1 shadow-md;
+    background: var(--bg-surface);
+  }
+
+  .map-address-search-form button {
+    @apply shrink-0 shadow-md;
+  }
+
+  .map-address-suggestions {
+    @apply mt-1 max-h-56 list-none overflow-auto rounded-lg border p-0 shadow-lg;
+    border-color: var(--border-strong);
+    background: var(--bg-surface);
+  }
+
+  .map-address-suggestions li {
+    @apply m-0 border-b last:border-b-0;
+    border-color: var(--border);
+  }
+
+  .map-address-suggestions button {
+    @apply w-full rounded-none border-0 bg-transparent px-3 py-2 text-left text-sm font-normal;
+    color: var(--text);
+  }
+
+  .map-address-suggestions button:hover {
+    background: var(--bg-card-soft);
+    color: var(--accent-strong);
+  }
+
+  .user-location-dot {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #2563eb;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25);
+    animation: user-location-pulse 2s ease-out infinite;
+  }
+
+  @keyframes user-location-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+    }
+    70% {
+      box-shadow: 0 0 0 12px rgba(37, 99, 235, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    }
+  }
+
+  .nearby-place-marker {
+    display: inline-flex;
+    filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.9));
+  }
+
+  .nearby-list-hint {
+    @apply m-0 text-sm font-medium;
+    color: var(--accent-strong);
+  }
+
+  .place-card-title-row {
+    @apply mb-1 flex items-start justify-between gap-2;
+  }
+
+  .place-card-title-row h3 {
+    @apply mb-0;
+  }
+
+  .distance-badge {
+    @apply shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold;
+    background: var(--bg-card-soft);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .distance-badge.nearby,
+  .place-card.nearby .distance-badge {
+    background: color-mix(in srgb, #22c55e 20%, transparent);
+    border-color: #22c55e;
+    color: #16a34a;
+  }
+
+  .place-card.nearby {
+    border-color: color-mix(in srgb, #22c55e 55%, var(--border-strong));
   }
 
   .places-map {
@@ -446,11 +741,11 @@
 
   @media (max-width: 1280px) {
     .places-layout {
-      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr);
     }
 
     .map-wrapper,
-    .right-panel {
+    .places-list-panel {
       max-height: clamp(340px, 52vh, 640px);
     }
 
@@ -464,9 +759,8 @@
       grid-template-columns: 1fr;
     }
 
-    .right-panel {
-      max-height: none;
-      overflow: visible;
+    .places-list-panel {
+      max-height: min(420px, 50vh);
     }
 
     .map-wrapper {
