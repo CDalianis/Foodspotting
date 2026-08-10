@@ -1,3 +1,24 @@
+function parseAddressParts(data) {
+  const address = data.address || {}
+
+  const city =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.suburb ||
+    address.municipality ||
+    address.county ||
+    ''
+
+  return {
+    address: address.road || address.pedestrian || address.footway || data.display_name?.split(',')[0]?.trim() || '',
+    streetNumber: address.house_number || '',
+    postalCode: address.postcode || '',
+    city,
+    country: address.country || '',
+  }
+}
+
 export async function reverseGeocode(lat, lng) {
   const url = new URL('https://nominatim.openstreetmap.org/reverse')
   url.searchParams.set('format', 'json')
@@ -18,22 +39,42 @@ export async function reverseGeocode(lat, lng) {
   }
 
   const data = await response.json()
-  const address = data.address || {}
+  return parseAddressParts(data)
+}
 
-  const city =
-    address.city ||
-    address.town ||
-    address.village ||
-    address.suburb ||
-    address.municipality ||
-    address.county ||
-    ''
-
-  return {
-    address: address.road || address.pedestrian || address.footway || data.display_name?.split(',')[0]?.trim() || '',
-    streetNumber: address.house_number || '',
-    postalCode: address.postcode || '',
-    city,
-    country: address.country || '',
+export async function searchAddresses(query, { limit = 5 } = {}) {
+  const trimmed = query?.trim()
+  if (!trimmed || trimmed.length < 3) {
+    return []
   }
+
+  const url = new URL('https://nominatim.openstreetmap.org/search')
+  url.searchParams.set('format', 'json')
+  url.searchParams.set('q', trimmed)
+  url.searchParams.set('addressdetails', '1')
+  url.searchParams.set('limit', String(limit))
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      'Accept-Language': 'en',
+      'User-Agent': 'FoodSpotsApp/1.0 (local-dev)',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Address search failed')
+  }
+
+  const results = await response.json()
+  return results.map((item) => {
+    const parts = parseAddressParts(item)
+    return {
+      id: String(item.place_id),
+      label: item.display_name,
+      lat: Number(item.lat),
+      lng: Number(item.lon),
+      ...parts,
+    }
+  })
 }
